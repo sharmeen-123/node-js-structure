@@ -1,4 +1,4 @@
-const User = require("../models/user.model");
+const head = require("../models/head.model");
 
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -20,37 +20,37 @@ const loginValidationSchema = Joi.object({
   password: Joi.string().min(3).required(),
 });
 
-const userController = {
+const headController = {
   async register(req, res) {
     const { error } = registerValidationSchema.validate(req.body);
     if (error) {
       console.log(error.details[0].message);
       res.status(400).send(error.details[0].message);
     } else {
-      let userData = req.body;
-      let user = new User(userData);
-      const emailExists = await User.findOne({
-        email: user.email,
+      let headData = req.body;
+      let head = new head(headData);
+      const emailExists = await head.findOne({
+        email: head.email,
       });
       if (emailExists) {
         console.log("already exisits");
         res.status(400).send("Email address Already exists try loging in");
       } else {
         const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(user.password, salt);
-        user.save((error, registeredUser) => {
+        head.password = await bcrypt.hash(head.password, salt);
+        head.save((error, registeredhead) => {
           if (error) {
             res.send(error.message);
           } else {
             const token = jwt.sign(
-              { _id: registeredUser._id },
+              { _id: registeredhead._id },
               process.env.TOKEN_SECRET
             );
             res.status(200).send({
               authToken: token,
-              name: registeredUser.name,
-              email: registeredUser.email,
-              _id: registeredUser._id,
+              name: registeredhead.name,
+              email: registeredhead.email,
+              _id: registeredhead._id,
             });
           }
         });
@@ -62,30 +62,30 @@ const userController = {
     if (error) {
       res.status(400).send(error.details[0].message);
     } else {
-      const userData = req.body;
-      const user = new User(userData);
-      const foundUser = await User.findOne({ email: userData.email });
+      const headData = req.body;
+      const head = new head(headData);
+      const foundhead = await head.findOne({ email: headData.email });
 
-      if (!foundUser) {
+      if (!foundhead) {
         res.status(400).send("Email or Password is wrong");
       } else {
         const validPass = await bcrypt.compare(
-          user.password,
-          foundUser.password
+          head.password,
+          foundhead.password
         );
         if (!validPass) {
           res.status(400).send("Email or Password is wrong");
         } else {
           const token = jwt.sign(
-            { _id: foundUser._id },
+            { _id: foundhead._id },
             process.env.TOKEN_SECRET
           );
           res.status(200).send({
             authToken: token,
-            name: foundUser.name,
-            email: foundUser.email,
-            _id: foundUser._id,
-            isAmdin: foundUser.isAdmin,
+            name: foundhead.name,
+            email: foundhead.email,
+            _id: foundhead._id,
+            isAmdin: foundhead.isAdmin,
           });
         }
       }
@@ -93,7 +93,7 @@ const userController = {
   },
 };
 
-module.exports = userController;
+module.exports = headController;
 
 // router.post("/login", async (req, res) => {
 // });
